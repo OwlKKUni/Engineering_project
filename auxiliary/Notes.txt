@@ -1,0 +1,13 @@
+Pipeline - chain of processing elements (processes, threads, functions, etc.), where the output of each element is the input of the next
+
+YOU CANT RUN GPU ON TENSORFLOW VERSION > 2.10
+Tensorflow 2.10 requires python v3.10 -> I am using v3.11
+
+Order of running:
+#1 run get_images.py
+#2 run load_images_into_a_pipeline.py
+#3 run random_move_files.py and move_labels.py
+#4 run augment_all_pictures.py
+#5
+
+This thing takes nearly 10 minutes per epoch on train set
