@@ -35,8 +35,8 @@ vgg = VGG16(include_top=False)  # drops everything after last max pooling layer
 # to see the layers of VGG16 use:
 # print(vgg.summary())
 # or
-# facetracker = build_model()
-# print(facetracker.summary())
+# tracker_model = build_model()
+# print(tracker_model.summary())
 
 # Output shape
 # (x, -> number of samples
@@ -66,18 +66,18 @@ def build_model():
     regress2 = Dense(4, activation='sigmoid')(regress1)
     # maps 4 coordinates of bounding box
 
-    facetracker = Model(inputs=input_layer, outputs=[class2, regress2])  # Combining both using Model API
-    return facetracker
+    tracker_model = Model(inputs=input_layer, outputs=[class2, regress2])  # Combining both using Model API
+    return tracker_model
 
 
 train, test, val = create_final_datasets()
 # print(train.as_numpy_iterator().next()[1])
 
 # Testing out Neural Network
-facetracker = build_model()  # -> creating an instance of build_model()
+tracker_model = build_model()  # -> creating an instance of build_model()
 
 # see the model
-# print(facetracker.summary())
+# print(tracker_model.summary())
 
 X, y = train.as_numpy_iterator().next()
 # X - images
@@ -86,7 +86,7 @@ X, y = train.as_numpy_iterator().next()
 # print(X.shape)
 # returns (8, 120, 120, 3)
 
-classes, coords = facetracker.predict(X)
+classes, coords = tracker_model.predict(X)
 
 # LOSSES AND OPTIMIZERS
 
@@ -141,13 +141,13 @@ regressloss = localization_loss
 # TRAINING NEURAL NETWORK
 
 # create custom model class
-class FaceTracker(Model):
+class TrackerModel(Model):
 
     # method to pass initial parameters
-    def __init__(self, facetracker, **kwargs):  # ** -> allows for variadic number of elements passed to a function
+    def __init__(self, tracker_model, **kwargs):  # ** -> allows for variadic number of elements passed to a function
         # (variable type -> key:value)
         super().__init__(**kwargs)
-        self.model = facetracker
+        self.model = tracker_model
 
     def compile(self, opt, classloss, localizationloss, **kwargs):  # possible noqa
         super().compile(**kwargs)  # compile() -> computes the Python code from a source object and returns it.
@@ -162,7 +162,7 @@ class FaceTracker(Model):
         # X -> preprocessed images
 
         with tf.GradientTape() as tape:
-            classes, coords = self.model(X, training=True)  # make a prediction with model (takes in facetracker)
+            classes, coords = self.model(X, training=True)  # make a prediction with model (takes in tracker_model)
 
             batch_classloss = self.closs(y[0], classes)  # passing true and predicted classification values
             # y[0] - true
@@ -196,7 +196,7 @@ class FaceTracker(Model):
         return self.model(X, **kwargs)
 
 
-model = FaceTracker(facetracker)  # Subclass and set up neural network
+model = TrackerModel(tracker_model)  # Subclass and set up neural network
 model.compile(opt, classloss, regressloss)
 
 # train
@@ -247,6 +247,6 @@ plt.show()
 # val regressloss should not be jumping
 
 # save the model
-facetracker.save('facetracker1.h5')
-facetracker = load_model('facetracker1.h5')
+tracker_model.save('tracker_model1.h5')
+tracker_model = load_model('tracker_model1.h5')
 
